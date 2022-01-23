@@ -9,7 +9,6 @@
 # Library imports
 ImportError
 import math
-from os import fsencode
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,17 +21,18 @@ import soundfile as sf
 
 #################### 4.1 ####################
 # Audio loading
-orig_audio, fs = sf.read('../audio/xjunak01.wav')    # Načtení originálního zvukového souboru
+orig_audio, fs = sf.read('../audio/xjunak01.wav')    # Loading up the original file
 # Time axis creation
 orig_audio_t = np.arange(orig_audio.size) / fs
+# printing min and max
+print("Maximální hodnota: ",orig_audio.max(), "Minimální hodnota", np.abs(orig_audio).min())
 # Graph creation
 plt.figure(figsize=(15,3))
 plt.plot(orig_audio_t, orig_audio)
 plt.gca().set_xlabel('$t[s]$')
 plt.title('Graph of original audio')
 plt.tight_layout()
-plt.savefig('Original_audio_file.pdf')
-
+plt.savefig('Original_audio_file.pdf') # Creating the graph as PDFs in src directory
 
 #################### 4.2 ####################
 # Centralisation
@@ -40,7 +40,7 @@ orig_audio -= np.mean(orig_audio)
 # Normalisation
 orig_audio /= np.abs(orig_audio).max() 
 # Segment Creation
-seg_start = 0   # začátek segmentů v sekundách
+seg_start = 0   # Beginning of segment in seconds
 seg_len = 1024/fs  # Length of the segment in sec
 seg_shift = 512/fs # Length of the segment shift in sec
 
@@ -90,8 +90,6 @@ plt.savefig('Frequencies.pdf')
 #################### 4.4 ####################
 # Creating spectogram for the whole audio
 f, t, sgr = spectrogram(orig_audio, fs, nperseg=1024, noverlap=512)
-# prevod na PSD
-# (ve spektrogramu se obcas objevuji nuly, ktere se nelibi logaritmu, proto +1e-20)
 sgr_log = 10 * np.log10(sgr+1e-20) 
 # Creating spectogram graph
 plt.figure(figsize=(9,7))
@@ -110,8 +108,8 @@ freq1 = 848       # The lowest noise frequency determined by analyzing the spect
 freq2 = freq1 * 2
 freq3 = freq1 * 3
 freq4 = freq1 * 4
-# Substracting the noise frequencies
 #################### 4.6 ####################
+# Substracting the noise frequencies
 samples = []
 for i in range(orig_audio.size):
     samples.append(i*1/fs)
@@ -168,37 +166,29 @@ h = lfilter(b, a, imp)
 plt.figure(figsize=(5,3))
 plt.stem(np.arange(N_imp), h, basefmt=' ')
 plt.gca().set_xlabel('$n$')
-plt.title('Impulsní odezva $h[n]$')
 plt.grid(alpha=0.5, linestyle='--')
-
 plt.tight_layout()
+plt.title('Impulsní odezva $h[n]$')
+plt.savefig('Impuls response.pdf')
+
 #################### 4.8 ####################
 # Zero points and poles
-
-# impulsni odezva
-# nuly, poly
 z, p, k = tf2zpk(b, a)
-
 plt.figure(figsize=(4,3.5))
-
-# jednotkova kruznice
+# unit circle
 ang = np.linspace(0, 2*np.pi,100)
 plt.plot(np.cos(ang), np.sin(ang))
-
-# nuly, poly
 plt.scatter(np.real(z), np.imag(z), marker='o', facecolors='none', edgecolors='r', label='nuly')
 plt.scatter(np.real(p), np.imag(p), marker='x', color='g', label='póly')
-
 plt.gca().set_xlabel('Realná složka $\mathbb{R}\{$z$\}$')
 plt.gca().set_ylabel('Imaginarní složka $\mathbb{I}\{$z$\}$')
-
 plt.grid(alpha=0.5, linestyle='--')
 plt.legend(loc='upper left')
-
 plt.tight_layout()
-
+plt.title('Nuly a póly')
+plt.savefig('zeroes_and_poles.pdf')
 #################### 4.9 ####################
-# Frequency response
+# Frequency characteristic
 plt.figure(figsize=(9,3))
 plt.plot(freq1 / 2 / np.pi * fs, filter1, color='purple')
 plt.plot(freq2 / 2 / np.pi * fs, filter2, color='orange')
@@ -209,8 +199,8 @@ plt.gca().set_ylabel("Amplitude (dB)", color='blue')
 plt.gca().set_xlim([0, 8000])
 plt.gca().set_ylim([-40, 10])
 plt.tight_layout()
-plt.title('Filter frequency response')
-plt.savefig('filter_freq_response.pdf')
+plt.title('Frequency characteristic of filters')
+plt.savefig('filter_freq_char.pdf')
 #################### 4.10 ####################
 # Filtration
 f, t, sfgr = spectrogram(filtered, fs)
@@ -223,6 +213,7 @@ cbar = plt.colorbar()
 cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
 plt.tight_layout()
 plt.title('Spectogram of filtered signal')
+plt.savefig('spectogram_filtered.pdf')
 # Creating file from the result cosinus
 sf.write("../audio/filtered_audio.wav", filtered, fs)
 
